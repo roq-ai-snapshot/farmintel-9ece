@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model crop_recommendation {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  farm_id       String   @db.Uuid
+  crop_name     String   @db.VarChar(255)
+  planting_date DateTime @db.Date
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+  updated_at    DateTime @default(now()) @db.Timestamp(6)
+  farm          farm     @relation(fields: [farm_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model farm {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String                @db.VarChar(255)
+  user_id             String                @db.Uuid
+  created_at          DateTime              @default(now()) @db.Timestamp(6)
+  updated_at          DateTime              @default(now()) @db.Timestamp(6)
+  crop_recommendation crop_recommendation[]
+  user                user                  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  livestock           livestock[]
+  task                task[]
+}
+
+model livestock {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  farm_id       String   @db.Uuid
+  species       String   @db.VarChar(255)
+  health_status String   @db.VarChar(255)
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+  updated_at    DateTime @default(now()) @db.Timestamp(6)
+  farm          farm     @relation(fields: [farm_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model task {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  farm_id     String   @db.Uuid
+  assigned_to String   @db.Uuid
+  description String   @db.VarChar(255)
+  status      String   @db.VarChar(50)
+  due_date    DateTime @db.Date
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  user        user     @relation(fields: [assigned_to], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  farm        farm     @relation(fields: [farm_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email       String  @unique @db.VarChar(255)
+  firstName   String? @db.VarChar(255)
+  lastName    String? @db.VarChar(255)
+  roq_user_id String  @db.VarChar(255)
+  tenant_id   String  @db.VarChar(255)
+  farm        farm[]
+  task        task[]
+}
